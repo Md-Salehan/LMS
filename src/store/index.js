@@ -1,0 +1,44 @@
+import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers } from "redux";
+// import { baseApi } from "./api/baseApi";
+import storageSession from 'redux-persist/lib/storage/session';
+
+import {
+  persistReducer,
+  persistStore,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+
+
+
+const reducers = combineReducers({
+//   [baseApi.reducerPath]: baseApi.reducer,
+  
+});
+
+const persistConfig = {
+  key: "root",
+  storage: storageSession,
+  whitelist: ["auth", "ui"], // only persist these slices
+};
+
+const persistedReducer = persistReducer(persistConfig, reducers);
+
+export const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // ignore redux-persist actions
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }).concat(baseApi.middleware),
+  devTools: import.meta.env.MODE !== "production",
+});
+
+export const persistor = persistStore(store);
